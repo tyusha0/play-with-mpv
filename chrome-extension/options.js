@@ -4,8 +4,13 @@ function save_options() {
     const server_url = document.getElementById('server_url').value || null;
     const maxheight = document.getElementById('maxheight').value || null;
     const mpv_args = document.getElementById('mpv_args').value || null;
+    const mpv_player = document.getElementById('mpv_player').value || null;
     chrome.storage.sync.set({
-        server_url, maxheight, mpv_args
+        // server_url, maxheight, mpv_args, mpvplayer,
+         server_url: server_url,
+         maxheight: maxheight,
+         mpv_args: mpv_args,
+         mpv_player: mpv_player
     }, function() {
         // Update status to let user know options were saved.
         const status = document.getElementById('status');
@@ -23,11 +28,14 @@ function restore_options() {
         server_url: null,
         maxheight: null,
         mpv_args: null,
+        mpv_player: null,
+        mpv_player: null,
     }, function(opts) {
         document.getElementById('server_url').value = opts.server_url;
         document.getElementById('maxheight').value = opts.maxheight || '';
         document.getElementById('mpv_args').value = opts.mpv_args;
-
+        document.getElementById('mpv_player').value = opts.mpv_player || '';
+        
         // TODO: chrome seems to block this.
         // Check server connectivity
         // const xhr = new XMLHttpRequest();

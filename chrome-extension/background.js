@@ -15,6 +15,7 @@ function playUrl(url, pause) {
 		server_url: null,
 		maxheight: null,
 		mpv_args: null,
+		mpv_player: null,
 	}, function(opts) {
 		if (!opts.server_url)
 			opts.server_url = 'http://localhost:7531';
@@ -27,8 +28,13 @@ function playUrl(url, pause) {
 			opts.mpv_args.splice(0, 0,
 			`--ytdl-format=best[height<=${opts.maxheight}]/bestvideo[height<=?${opts.maxheight}]+bestaudio/best`);
 		}
+
+		if(!opts.mpv_player){
+			opts.mpv_player = 'mpv'
+		}
+		
 		const query = (`?play_url=` + encodeURIComponent(url) + [''].concat(
-			opts.mpv_args.map(encodeURIComponent)).join('&mpv_args='));
+			opts.mpv_args.map(encodeURIComponent)).join('&mpv_args=') + '&mpv_player=' + opts.mpv_player);
 
 		const xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = handleXHR;
@@ -48,10 +54,12 @@ function handleXHR() {
 	// console.log("XHR", arguments)
 }
 
-var parent = chrome.contextMenus.create({
-	"id": "tyusha.play-with-mpv",
-	"title": "Play with MPV",
-	"contexts": ["page", "link", "video", "audio"]
+var parent = chrome.contextMenus.removeAll(function() {
+	chrome.contextMenus.create({
+		"id": "tyusha.play-with-mpv",
+		"title": "Play with MPV",
+		"contexts": ["page", "link", "video", "audio"]
+	});
 });
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
