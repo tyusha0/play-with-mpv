@@ -4,6 +4,7 @@
 import sys
 import argparse
 from subprocess import Popen
+from shutil import which
 
 if sys.version_info[0] < 3:  # python 2
     import BaseHTTPServer
@@ -28,8 +29,47 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler, CompatibilityMixin):
         self.end_headers()
         if body:
             self.send_body(body)
+            
+    def play_with_mpv(self, query):
+        mpv_command='mpv'
+        if "list" in query:
+            list_url = 'https://www.youtube.com/playlist?list={}'.format(
+                query["list"][0])
+
+            ytdl_format = ''
+            if "mpv_args" in query:
+                if query["mpv_args"] is not None:
+                    ytdl_format = '--ytdl-format={}'.format(query["mpv_args"][0])
+
+            return Popen([mpv_command, list_url, '--force-window'] +
+                         query.get("mpv_args", []))
+        else:
+            mpv_options = ''
+            urls = str(query["play_url"][0])
+            return Popen([mpv_command, urls, '--force-window'] +
+                         query.get("mpv_args", []))
+
+    def play_with_celluloid(self, query):
+        if which('celluloid') is not None:
+            # Playlist support
+            urls = ''
+            if "list" in query:
+                urls += str("&list={}".format(query["list"][0]))
+            mpv_command = 'celluloid'
+            mpv_options = []
+
+            # Translate mpv options to celluloid
+            for mpv_arg in query["mpv_args"]:
+                if '--ytdl-format' in mpv_arg:
+                    mpv_options.append(mpv_arg.replace(
+                        '--ytdl-format=', '--mpv-ytdl-format="') + '"')
+                else:
+                    mpv_options.append(mpv_arg)
+
+            return Popen([mpv_command, urls] + mpv_options)
 
     def do_GET(self):
+        mpv_command='mpv'
         try:
             url = urlparse.urlparse(self.path)
             query = urlparse.parse_qs(url.query)
@@ -37,6 +77,9 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler, CompatibilityMixin):
             query = {}
         if query.get('mpv_args'):
             print("MPV ARGS:", query.get('mpv_args'))
+            mpv_command = 'mpv'
+            if('mpv_player' in query):
+                mpv_command = query['mpv_player'][0]
         if "play_url" in query:
             urls = str(query["play_url"][0])
             if urls.startswith('magnet:') or urls.endswith('.torrent'):
@@ -53,8 +96,10 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler, CompatibilityMixin):
 
             else:
                 try:
-                    pipe = Popen(['mpv', urls, '--force-window'] +
-                                 query.get("mpv_args", []))
+                    if mpv_command == 'mpv':
+                        pipe = self.play_with_mpv(query)
+                    elif mpv_command == 'celluloid':
+                        pipe = self.play_with_celluloid(query)
                 except FileNotFoundError as e:
                     missing_bin('mpv')
             self.respond(200, "playing...")
