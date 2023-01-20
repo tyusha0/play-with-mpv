@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 description = "Chrome extension and python server that allows you to play videos in webpages with MPV instead."
 
@@ -8,9 +8,9 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 def get_version():
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
     try:
-        from subprocess import DEVNULL # py3
+        from subprocess import DEVNULL  # py3
     except ImportError:
         import os
         DEVNULL = open(os.devnull, 'wb')
@@ -25,14 +25,14 @@ def get_version():
             run('git', 'rev-parse', '--short', 'HEAD')))
 
 setup(
-    name = "play-with-mpv",
+    name = "play-with-mpv-ytdlp",
     version = get_version(),
-    author = "Jonathan Knapp",
-    author_email = "jaknapp8@gmail.com",
+    author = "Anton Artsiushkevich",
+    author_email = "htovver@gmail.com",
     description = description,
     license = "MIT",
     keywords = "mpv video play chrome extension",
-    url = "http://github.com/thann/play-with-mpv",
+    url = "http://github.com/tyusha0/play-with-mpv",
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -41,7 +41,7 @@ setup(
     ],
 
     py_modules=["play_with_mpv"],
-    install_requires=['wheel', 'youtube-dl'],
+    install_requires=['wheel', 'yt-dlp'],
     entry_points={
         'gui_scripts': [
             'play-with-mpv=play_with_mpv:start',
@@ -53,7 +53,7 @@ setup(
     ],
     desktop_entries={
         'play-with-mpv': {
-            'filename': 'thann.play-with-mpv',
+            'filename': 'play-with-mpv-ytdlp',
             'Name': 'Play With MPV (server)',
             'Categories': 'AudioVideo;Audio;Video;Player;TV',
             'Comment': description,

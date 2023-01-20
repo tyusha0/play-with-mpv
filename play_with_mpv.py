@@ -45,6 +45,12 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler, CompatibilityMixin):
                                  query.get("mpv_args", []))
                 except FileNotFoundError as e:
                     missing_bin('peerflix')
+            elif "filmix" in urls:
+                try:
+                    pipe = Popen(['filmix', '-p', urls])
+                except FileNotFoundError as e:
+                    missing_bin('filmix')
+
             else:
                 try:
                     pipe = Popen(['mpv', urls, '--force-window'] +
@@ -82,7 +88,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler, CompatibilityMixin):
                 self.respond(400, msg)
             else:
                 try:
-                    pipe = Popen(['youtube-dl', urls, '-o', location] +
+                    pipe = Popen(['yt-dlp', urls, '-o', location] +
                                  query.get('ytdl_args', []))
                 except FileNotFoundError as e:
                     missing_bin('youtube-dl')
@@ -100,7 +106,7 @@ def missing_bin(bin):
 def start():
     parser = argparse.ArgumentParser(description='Plays MPV when instructed to by a browser extension.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--port',   type=int,  default=7531, help='The port to listen on.')
-    parser.add_argument('--public', action='store_true',     help='Accept traffic from other comuters.')
+    parser.add_argument('--public', action='store_true',     help='Accept traffic from other computers.')
     args = parser.parse_args()
     hostname = '0.0.0.0' if args.public else 'localhost'
     httpd = BaseHTTPServer.HTTPServer((hostname, args.port), Handler)
